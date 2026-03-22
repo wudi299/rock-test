@@ -1,0 +1,74 @@
+{
+  "split_counts": {
+    "train": 19,
+    "val": 6,
+    "test": 3
+  },
+  "label_by_split": {
+    "T01": {
+      "test": 0,
+      "train": 2,
+      "val": 1
+    },
+    "T02": {
+      "test": 0,
+      "train": 2,
+      "val": 1
+    },
+    "T03": {
+      "test": 1,
+      "train": 2,
+      "val": 0
+    },
+    "T04": {
+      "test": 0,
+      "train": 1,
+      "val": 1
+    },
+    "T05": {
+      "test": 0,
+      "train": 1,
+      "val": 0
+    },
+    "T06": {
+      "test": 1,
+      "train": 1,
+      "val": 0
+    },
+    "T07": {
+      "test": 0,
+      "train": 2,
+      "val": 1
+    },
+    "T08": {
+      "test": 0,
+      "train": 1,
+      "val": 0
+    },
+    "T09": {
+      "test": 0,
+      "train": 1,
+      "val": 1
+    },
+    "T10": {
+      "test": 0,
+      "train": 1,
+      "val": 0
+    },
+    "T11": {
+      "test": 0,
+      "train": 1,
+      "val": 0
+    },
+    "T12": {
+      "test": 0,
+      "train": 1,
+      "val": 0
+    },
+    "T13": {
+      "test": 1,
+      "train": 3,
+      "val": 1
+    }
+  }
+}

@@ -1,0 +1,217 @@
+experiment:
+  name: baseline_resnet18_multitask
+  work_dir: "D:/project 1/specimen_multitask_runs"
+  use_timestamp: true
+
+seed: 42
+deterministic: false
+device: "cuda"
+num_workers: 0
+pin_memory: true
+
+data:
+  specimens_csv: "D:/project 1/data/metadata/specimens.csv"
+  images_csv: "D:/project 1/data/metadata/images.csv"
+  macro_annotations_csv: "D:/project 1/data/metadata/macro_annotations.csv"
+  micro_annotations_csv: "D:/project 1/data/metadata/micro_annotations.csv"
+  raw_label_mapping_csv: "D:/project 1/data/metadata/raw_label_mapping.csv"
+  class13_mapping_csv: "D:/project 1/data/metadata/class13_mapping.csv"
+
+  root_dir: "D:/project 1/data/raw"
+
+  path_resolution:
+    path_strip_prefixes: []
+
+  filters:
+    keep_only_keep_flag: true
+    keep_flag_value: 1
+
+  scale_values:
+    macro: "macro"
+    micro: "micro"
+
+  columns:
+    specimen_id: "specimen_id"
+    main_label: "class_13_id"
+    aux_label: "weathering_grade_specimen"
+    split: "split"
+    class_13_name: "class_13_name"
+    image_id: "image_id"
+    scale_type: "scale_type"
+    img_path: "img_path"
+    relative_path: null
+    file_name: "file_name"
+    keep_flag: "keep_flag"
+    blur_score: "blur_score"
+    brightness_score: "brightness_score"
+    img_width: "img_width"
+    img_height: "img_height"
+
+  split_strategy:
+    split_csv: null
+    export_subdir: "metadata"
+    export_name: "specimen_split.csv"
+    ratios:
+      train: 0.7
+      val: 0.2
+      test: 0.1
+    stratify_by: "class_13_id"
+    seed: 42
+
+  tabular:
+    specimen_numeric_cols:
+      - "macro_face_count"
+      - "micro_image_count"
+    specimen_categorical_cols:
+      - "site_id"
+      - "collector"
+      - "device_macro"
+      - "device_micro"
+    image_numeric_stat_cols:
+      - "blur_score"
+      - "brightness_score"
+      - "img_width"
+      - "img_height"
+    image_categorical_cols:
+      - "view_type"
+      - "label_source"
+      - "label_confidence"
+      - "has_scale_ref"
+      - "scale_ref_type"
+      - "is_marked_view"
+    macro_annotation_categorical_cols:
+      - "face_type"
+      - "weathering_visible"
+      - "weathering_features"
+      - "color_main"
+      - "texture_visible"
+      - "structure_visible"
+      - "surface_integrity"
+      - "confidence_macro"
+    macro_annotation_multivalue_cols:
+      weathering_features: ";"
+    macro_annotation_numeric_cols:
+      - "fracture_visible"
+      - "vein_visible"
+      - "phenocryst_visible"
+    micro_annotation_categorical_cols:
+      - "micro_region_type"
+      - "grain_visibility"
+      - "grain_size_level"
+      - "micro_texture"
+      - "weathering_micro_visible"
+      - "focus_quality"
+      - "confidence_micro"
+    micro_annotation_multivalue_cols: {}
+    micro_annotation_numeric_cols:
+      - "micro_fracture_visible"
+      - "pore_visible"
+      - "alteration_visible"
+      - "reflective_spot"
+    exclude_specimen_cols:
+      - "specimen_id"
+      - "class_13_id"
+      - "class_13_name"
+      - "raw_label"
+      - "raw_label_std"
+      - "raw_label_id"
+      - "folder_class_name"
+      - "weathering_grade_specimen"
+      - "notes"
+      - "split"
+    standardize_continuous: true
+    impute_strategy: "median"
+
+image:
+  size: 224
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  train_augment:
+    random_resized_crop: false
+    horizontal_flip: 0.5
+    vertical_flip: 0.2
+    color_jitter: 0.1
+
+model:
+  name: "baseline"
+  pretrained: true
+  drop_rate: 0.0
+  drop_path_rate: 0.0
+  baseline:
+    macro_backbone: "resnet18"
+    micro_backbone: "resnet18"
+    pool_type: "mean"
+    branch_hidden_dim: 256
+    tabular_hidden_dims: [128]
+    fusion_hidden_dims: [512, 256]
+    fusion_dropout: 0.2
+    head_dropout: 0.2
+  advanced:
+    macro_backbone: "convnext_tiny"
+    micro_backbone: "convnext_tiny"
+    pool_type: "gated_attention"
+    branch_hidden_dim: 256
+    tabular_hidden_dims: [128]
+    fusion_type: "gated"
+    fusion_hidden_dim: 256
+    fusion_dropout: 0.2
+    head_dropout: 0.2
+    modality_dropout: 0.2
+
+sampling:
+  baseline:
+    train:
+      num_macro_samples: 8
+      num_micro_samples: 8
+      with_replacement: true
+    eval:
+      mode: "all"
+      max_macro_images: 64
+      max_micro_images: 64
+  advanced:
+    train:
+      mode: "max_k"
+      max_macro_images: 16
+      max_micro_images: 16
+    eval:
+      mode: "all"
+      max_macro_images: 64
+      max_micro_images: 64
+
+loss:
+  main:
+    type: "weighted_ce"
+    focal_gamma: 2.0
+    label_smoothing: 0.0
+  aux:
+    type: "ce"
+  lambda_aux: 0.3
+
+optimizer:
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  backbone_lr_mult: 0.5
+
+scheduler:
+  name: "cosine"
+  warmup_epochs: 2
+  warmup_start_factor: 0.2
+  min_lr: 1.0e-6
+
+train:
+  epochs: 30
+  batch_size: 2
+  amp: true
+  grad_clip_norm: 1.0
+  early_stopping_patience: 8
+  freeze_backbone_epochs: 1
+  tensorboard: true
+  save_attention_in_eval: false
+
+eval:
+  batch_size: 2
+  save_attention_weights: true
+
+infer:
+  batch_size: 2
+  top_k: 3
